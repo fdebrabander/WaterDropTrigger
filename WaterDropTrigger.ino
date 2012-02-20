@@ -23,7 +23,7 @@ inline void takePhoto() {
   digitalWrite(SHUTTER, LOW);
 }
 
-inline void resetCamera() {
+void resetCamera() {
   digitalWrite(FOCUS, LOW);
   digitalWrite(SHUTTER, LOW);
   delay(1000);
@@ -47,6 +47,6 @@ void setup() {
 }
 
 void loop() {
-  // TODO: serial communication
+  // TODO: serial communication, keypad & LCD
 }
 
