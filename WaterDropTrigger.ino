@@ -1,7 +1,8 @@
-#define SENSOR 0
-#define FOCUS 1
-#define SHUTTER 2
-#define SPEAKER 3
+#define FOCUS 0
+#define SHUTTER 1
+#define SENSOR 2
+#define SENSOR_INT 0 // Digital PIN 2 == Interrupt line 0
+#define SPEAKER 4
 
 #define DROP_DELAY 200
 #define INTER_PHOTO_DELAY 1000
@@ -29,6 +30,12 @@ inline void resetCamera() {
   digitalWrite(FOCUS, HIGH);
 }
 
+void sensorTriggered() {
+    takePhoto();
+    playTune();
+    resetCamera();
+}
+
 void setup() {
   pinMode(SENSOR, INPUT);
   pinMode(FOCUS, OUTPUT);
@@ -36,13 +43,10 @@ void setup() {
   pinMode(SPEAKER, OUTPUT);
 
   digitalWrite(FOCUS, HIGH);
+  attachInterrupt(SENSOR_INT, sensorTriggered, FALLING);
 }
 
 void loop() {
-  if (! digitalRead(SENSOR)) {
-    takePhoto();
-    playTune();
-    resetCamera();
-  }
+  // TODO: serial communication
 }
 
