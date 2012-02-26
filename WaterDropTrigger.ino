@@ -48,9 +48,11 @@ String serialRead() {
 void serialSync() {
   while (1) {
     String command = serialRead();
-    if (command.equals("ArduinoStartup!")) {
+    if (command.equals("ArduinoStartup")) {
       Serial.println(command);
       break;
+    } else {
+      Serial.println("ArduinoSyncRequired\n");
     }
   }
 }
