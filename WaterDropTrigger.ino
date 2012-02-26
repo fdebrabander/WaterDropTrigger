@@ -1,12 +1,14 @@
 #define FOCUS 0
 #define SHUTTER 1
 #define SENSOR 2
-#define SENSOR_INT 0 // Digital PIN 2 == Interrupt line 0
 #define SPEAKER 4
 
 #define DROP_DELAY 200
 #define INTER_PHOTO_DELAY 1000
 
+#define SERIAL_BAUD 57600
+#define SERIAL_READ_TIMEOUT 100
+#define SERIAL_MAX_CMD_LEN 128
 
 void playTune() {
   int i = 0;
@@ -30,10 +32,27 @@ void resetCamera() {
   digitalWrite(FOCUS, HIGH);
 }
 
-void sensorTriggered() {
-    takePhoto();
-    playTune();
-    resetCamera();
+String serialRead() {
+  int read_size = 0;
+  static char buf[SERIAL_MAX_CMD_LEN + 1];
+
+  if (Serial.available()) {
+    read_size = Serial.readBytesUntil('\n', buf, SERIAL_MAX_CMD_LEN);
+    buf[read_size] = 0;
+    return String(buf);
+  } else {
+    return String();
+  }
+}
+
+void serialSync() {
+  while (1) {
+    String command = serialRead();
+    if (command.equals("ArduinoStartup!")) {
+      Serial.println(command);
+      break;
+    }
+  }
 }
 
 void setup() {
@@ -42,11 +61,24 @@ void setup() {
   pinMode(SHUTTER, OUTPUT);
   pinMode(SPEAKER, OUTPUT);
 
+  Serial.begin(SERIAL_BAUD);
+  Serial.setTimeout(SERIAL_READ_TIMEOUT);
+  serialSync();
+
   digitalWrite(FOCUS, HIGH);
-  attachInterrupt(SENSOR_INT, sensorTriggered, FALLING);
 }
 
 void loop() {
-  // TODO: serial communication, keypad & LCD
+  if (! digitalRead(SENSOR)) {
+    takePhoto();
+    playTune();
+    resetCamera();
+  }
+
+  String command = serialRead();
+  if (command.length()) {
+    Serial.print("Received: ");
+    Serial.println(command);
+  }
 }
 
