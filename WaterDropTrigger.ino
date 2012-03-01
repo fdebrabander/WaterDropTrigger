@@ -1,86 +1,32 @@
-#define FOCUS 0
-#define SHUTTER 1
-#define SENSOR 2
-#define SPEAKER 4
+#include "Camera.h"
+
+#define FOCUS_PIN 8
+#define SHUTTER_PIN 9
+#define SENSOR_PIN 10
+#define SPEAKER_PIN 11
 
 #define DROP_DELAY 200
-#define INTER_PHOTO_DELAY 1000
 
-#define SERIAL_BAUD 57600
-#define SERIAL_READ_TIMEOUT 100
-#define SERIAL_MAX_CMD_LEN 128
+Camera D90(FOCUS_PIN, SHUTTER_PIN);
 
 void playTune() {
   int i = 0;
   for (i = 0; i <= 2; i++) {
-    tone(SPEAKER, 1000, 100);
+    tone(SPEAKER_PIN, 1000, 100);
     delay(100);
   }
 }
 
-inline void takePhoto() {
-  delay(DROP_DELAY);
-  digitalWrite(SHUTTER, HIGH);
-  delay(50);
-  digitalWrite(SHUTTER, LOW);
-}
-
-void resetCamera() {
-  digitalWrite(FOCUS, LOW);
-  digitalWrite(SHUTTER, LOW);
-  delay(1000);
-  digitalWrite(FOCUS, HIGH);
-}
-
-String serialRead() {
-  int read_size = 0;
-  static char buf[SERIAL_MAX_CMD_LEN + 1];
-
-  if (Serial.available()) {
-    read_size = Serial.readBytesUntil('\n', buf, SERIAL_MAX_CMD_LEN);
-    buf[read_size] = 0;
-    return String(buf);
-  } else {
-    return String();
-  }
-}
-
-void serialSync() {
-  while (1) {
-    String command = serialRead();
-    if (command.equals("ArduinoStartup")) {
-      Serial.println(command);
-      break;
-    } else {
-      Serial.println("ArduinoSyncRequired\n");
-    }
-  }
-}
-
 void setup() {
-  pinMode(SENSOR, INPUT);
-  pinMode(FOCUS, OUTPUT);
-  pinMode(SHUTTER, OUTPUT);
-  pinMode(SPEAKER, OUTPUT);
-
-  Serial.begin(SERIAL_BAUD);
-  Serial.setTimeout(SERIAL_READ_TIMEOUT);
-  serialSync();
-
-  digitalWrite(FOCUS, HIGH);
+  pinMode(SENSOR_PIN, INPUT);
+  pinMode(SPEAKER_PIN, OUTPUT);
 }
 
 void loop() {
-  if (! digitalRead(SENSOR)) {
-    takePhoto();
+  if (! digitalRead(SENSOR_PIN)) {
+    D90.takePhoto();
     playTune();
-    resetCamera();
-  }
-
-  String command = serialRead();
-  if (command.length()) {
-    Serial.print("Received: ");
-    Serial.println(command);
+    D90.resetCamera();
   }
 }
 
